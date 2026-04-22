@@ -1,4 +1,4 @@
-window.API_BASE_URL = "/api";
+window.API_BASE_URL = "";
 
 const API_CONFIG = {
   // Intentar obtener de una variable global (inyectada por el servidor o config)
