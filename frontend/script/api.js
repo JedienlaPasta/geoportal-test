@@ -1,105 +1,124 @@
-
-
+window.API_BASE_URL = "/api";
 
 const API_CONFIG = {
-    // Intentar obtener de una variable global (inyectada por el servidor o config)
-    // o usar el host actual si estamos en el mismo servidor, de lo contrario fallback a IP conocida.
-    BASE_URL: window.API_BASE_URL || "https://algarrobobase2-production-4ab9.up.railway.app",
-    get token() {
-        return localStorage.getItem('authToken') || localStorage.getItem('token');
-    }
+  // Intentar obtener de una variable global (inyectada por el servidor o config)
+  // o usar el host actual si estamos en el mismo servidor, de lo contrario fallback a IP conocida.
+  BASE_URL: window.API_BASE_URL,
+  get token() {
+    return localStorage.getItem("authToken") || localStorage.getItem("token");
+  },
 };
 
 const api = {
-    async request(endpoint, options = {}, responseType = 'json') {
-        // Inteligencia de Rutas: Asegurar prefijo /api si no es una URL absoluta o ya contiene prefijo
-        let finalEndpoint = endpoint;
-        if (!endpoint.startsWith('http') && !endpoint.startsWith('/api') && !endpoint.startsWith('/auth')) {
-            finalEndpoint = endpoint.startsWith('/') ? `/api${endpoint}` : `/api/${endpoint}`;
-        }
-        const url = finalEndpoint.startsWith('http') ? finalEndpoint : `${API_CONFIG.BASE_URL}${finalEndpoint}`;
-
-        const headers = {
-            'Authorization': API_CONFIG.token ? `Bearer ${API_CONFIG.token}` : ''
-        };
-
-        if (!(options.body instanceof FormData)) {
-            headers['Content-Type'] = 'application/json';
-        }
-
-        const config = {
-            ...options,
-            headers: {
-                ...headers,
-                ...options.headers
-            }
-        };
-
-        try {
-            const response = await fetch(url, config);
-
-            if (response.status === 401) {
-                console.warn("Sesión expirada o inválida");
-                if (typeof logout === 'function') {
-                    logout();
-                } else {
-                    localStorage.clear();
-                    const _base = window.location.hostname.endsWith('github.io') ? '/ALGARROBO_BASE2' : '';
-                    window.location.href = _base + '/frontend/index.html';
-                }
-                return;
-            }
-
-            if (!response.ok) {
-                const errorText = await response.text().catch(() => '');
-                console.error(`[API ${response.status}] ${endpoint} Response:`, errorText);
-                let errorData = {};
-                try { errorData = JSON.parse(errorText); } catch (e) { }
-                throw new Error(errorData.detail || errorData.error || errorData.message || `Error ${response.status}`);
-            }
-
-            if (responseType === 'blob') {
-                return await response.blob();
-            }
-            if (responseType === 'text') {
-                return await response.text();
-            }
-            if (responseType === 'raw') {
-                return response;
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error(`API Error (${endpoint}):`, error);
-            throw error;
-        }
-    },
-
-    get(endpoint, options = {}) {
-        return this.request(endpoint, { ...options, method: 'GET' });
-    },
-
-    getBlob(endpoint, options = {}) {
-        return this.request(endpoint, { ...options, method: 'GET' }, 'blob');
-    },
-
-    post(endpoint, data, options = {}) {
-        return this.request(endpoint, {
-            ...options,
-            method: 'POST',
-            body: data instanceof FormData ? data : JSON.stringify(data)
-        });
-    },
-
-    put(endpoint, data, options = {}) {
-        return this.request(endpoint, {
-            ...options,
-            method: 'PUT',
-            body: data instanceof FormData ? data : JSON.stringify(data)
-        });
-    },
-
-    delete(endpoint, options = {}) {
-        return this.request(endpoint, { ...options, method: 'DELETE' });
+  async request(endpoint, options = {}, responseType = "json") {
+    // Inteligencia de Rutas: Asegurar prefijo /api si no es una URL absoluta o ya contiene prefijo
+    let finalEndpoint = endpoint;
+    if (
+      !endpoint.startsWith("http") &&
+      !endpoint.startsWith("/api") &&
+      !endpoint.startsWith("/auth")
+    ) {
+      finalEndpoint = endpoint.startsWith("/")
+        ? `/api${endpoint}`
+        : `/api/${endpoint}`;
     }
+    const url = finalEndpoint.startsWith("http")
+      ? finalEndpoint
+      : `${API_CONFIG.BASE_URL}${finalEndpoint}`;
+
+    const headers = {
+      Authorization: API_CONFIG.token ? `Bearer ${API_CONFIG.token}` : "",
+    };
+
+    if (!(options.body instanceof FormData)) {
+      headers["Content-Type"] = "application/json";
+    }
+
+    const config = {
+      ...options,
+      headers: {
+        ...headers,
+        ...options.headers,
+      },
+    };
+
+    try {
+      const response = await fetch(url, config);
+
+      if (response.status === 401) {
+        console.warn("Sesión expirada o inválida");
+        if (typeof logout === "function") {
+          logout();
+        } else {
+          localStorage.clear();
+          const _base = window.location.hostname.endsWith("github.io")
+            ? "/ALGARROBO_BASE2"
+            : "";
+          window.location.href = _base + "/frontend/index.html";
+        }
+        return;
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => "");
+        console.error(
+          `[API ${response.status}] ${endpoint} Response:`,
+          errorText,
+        );
+        let errorData = {};
+        try {
+          errorData = JSON.parse(errorText);
+        } catch (e) {}
+        throw new Error(
+          errorData.detail ||
+            errorData.error ||
+            errorData.message ||
+            `Error ${response.status}`,
+        );
+      }
+
+      if (responseType === "blob") {
+        return await response.blob();
+      }
+      if (responseType === "text") {
+        return await response.text();
+      }
+      if (responseType === "raw") {
+        return response;
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error(`API Error (${endpoint}):`, error);
+      throw error;
+    }
+  },
+
+  get(endpoint, options = {}) {
+    return this.request(endpoint, { ...options, method: "GET" });
+  },
+
+  getBlob(endpoint, options = {}) {
+    return this.request(endpoint, { ...options, method: "GET" }, "blob");
+  },
+
+  post(endpoint, data, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: "POST",
+      body: data instanceof FormData ? data : JSON.stringify(data),
+    });
+  },
+
+  put(endpoint, data, options = {}) {
+    return this.request(endpoint, {
+      ...options,
+      method: "PUT",
+      body: data instanceof FormData ? data : JSON.stringify(data),
+    });
+  },
+
+  delete(endpoint, options = {}) {
+    return this.request(endpoint, { ...options, method: "DELETE" });
+  },
 };
