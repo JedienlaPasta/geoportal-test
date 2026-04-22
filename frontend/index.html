@@ -342,7 +342,7 @@
           clearAlerts();
 
           const apiBase = window.API_BASE_URL;
-          fetch(`${apiBase}/api/login`, {
+          fetch(`${apiBase}/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: username, password: password }),
