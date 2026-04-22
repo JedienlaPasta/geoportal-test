@@ -1,40 +1,38 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-
-<head>
-    <meta charset="utf-8">
+  <head>
+    <meta charset="utf-8" />
     <title>Ver documento</title>
-</head>
+  </head>
 
-<body>
-
+  <body>
     <h2>Documento</h2>
 
-    <iframe id="visor" width="100%" height="600" style="border:1px solid #ccc">
+    <iframe id="visor" width="100%" height="600" style="border: 1px solid #ccc">
     </iframe>
 
+    <script src="/frontend/script/api.js"></script>
     <script>
-        const documentoId = 1; // dinámico
-        const token = localStorage.getItem("authToken");
-        console.log(token)
-        fetch(`https://algarrobobase2-production-4ab9.up.railway.app/documentos/${documentoId}/view`, {
-            headers: {
-                "Authorization": "Bearer " + token
-            }
+      const apiBase = window.API_BASE_URL;
+      const documentoId = 1; // dinámico
+      const token = localStorage.getItem("authToken");
+      console.log(token);
+      fetch(`${apiBase}/documentos/${documentoId}/view`, {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("No se pudo cargar");
+          return res.blob();
         })
-            .then(res => {
-                if (!res.ok) throw new Error("No se pudo cargar");
-                return res.blob();
-            })
-            .then(blob => {
-                const url = URL.createObjectURL(blob);
-                document.getElementById("visor").src = url;
-            })
-            .catch(err => {
-                alert(err.message);
-            });
+        .then((blob) => {
+          const url = URL.createObjectURL(blob);
+          document.getElementById("visor").src = url;
+        })
+        .catch((err) => {
+          alert(err.message);
+        });
     </script>
-
-</body>
-
+  </body>
 </html>
