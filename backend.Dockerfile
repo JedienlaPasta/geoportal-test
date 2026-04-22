@@ -31,4 +31,4 @@ EXPOSE 8000
 
 # Comando de inicio usando gunicorn (evaluará automáticamente la variable PORT)
 # CMD gunicorn app_railway:app --bind 0.0.0.0:${PORT:-8000} --workers 4 --threads 2 --timeout 300
-CMD ["gunicorn", "app_railway:app", "--bind", "0.0.0.0:8000", "--workers", "4", "--threads", "2", "--timeout", "300"]
+CMD ["gunicorn", "app_railway:app", "--bind", "0.0.0.0:8086", "--workers", "4", "--threads", "2", "--timeout", "300"]
