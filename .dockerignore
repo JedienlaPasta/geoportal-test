@@ -62,7 +62,6 @@ __pycache__
 .env_neon
 
 
-backend/
 database/
 .review/
 .vscode/
