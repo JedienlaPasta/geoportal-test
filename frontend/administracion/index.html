@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Municipal · Algarrobo</title>
+    <meta name="description" content="Plataforma de Gestión Interna - Ilustre Municipalidad de Algarrobo">
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Tailwind (requerido por layout.js / renderHeader) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Estilos propios del portal -->
+    <link rel="stylesheet" href="css/portal.css">
+</head>
+
+<body>
+
+    <!-- ═══════════════════════════════════════════════
+         HEADER — inyectado por layout.js (user desde localStorage['userData'])
+    ═══════════════════════════════════════════════ -->
+    <div id="headerRender"></div>
+
+    <!-- ═══════════════════════════════════════════════
+         HERO
+    ═══════════════════════════════════════════════ -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-grid"></div>
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+
+        <div class="hero-content">
+
+            <!-- Badge institucional -->
+            <div class="institution-badge">
+                <i class="fas fa-award"></i>
+                Ilustre Municipalidad de Algarrobo · V Región
+            </div>
+
+            <!-- Título -->
+            <h1 class="hero-title">
+                Plataforma de<br><span>Gestión Municipal</span>
+            </h1>
+
+            <!-- Subtítulo dinámico (portal.js lo personaliza con el nombre del usuario) -->
+            <p class="hero-subtitle" id="hero-subtitle">
+                Acceso centralizado a los sistemas de SECPLAC, Geoportal y Licitaciones del municipio.
+            </p>
+
+            <!-- ═══ 3 MÓDULOS PRINCIPALES ═══ -->
+            <div class="modules-grid">
+
+                <!-- SECPLAC -->
+                <a href="../division/secplan/admin_general/proyecto.html"
+                    class="module-card module-secplac"
+                    id="card-secplac">
+                    <div class="module-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <span class="module-label">SECPLAC</span>
+                    <span class="module-desc">Proyectos e inversión municipal</span>
+                    <div class="module-arrow"><i class="fas fa-arrow-right"></i></div>
+                </a>
+
+                <!-- GEOPORTAL -->
+                <a href="../geoportal/index.html"
+                    class="module-card module-geoportal"
+                    id="card-geoportal">
+                    <div class="module-icon">
+                        <i class="fas fa-map-location-dot"></i>
+                    </div>
+                    <span class="module-label">Geoportal</span>
+                    <span class="module-desc">Cartografía y análisis territorial</span>
+                    <div class="module-arrow"><i class="fas fa-arrow-right"></i></div>
+                </a>
+
+                <!-- LICITACIONES -->
+                <a href="../division/licitaciones/admin_proyectos/dashboard.html"
+                    class="module-card module-licitaciones"
+                    id="card-licitaciones">
+                    <div class="module-icon">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <span class="module-label">Licitaciones</span>
+                    <span class="module-desc">Procesos y workflow licitatorio</span>
+                    <div class="module-arrow"><i class="fas fa-arrow-right"></i></div>
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- Wave divisor -->
+        <div class="hero-wave">
+            <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 40 C240 80 480 0 720 40 C960 80 1200 0 1440 40 L1440 80 L0 80 Z" fill="#f0f4f9" />
+            </svg>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         STATS SECTION
+    ═══════════════════════════════════════════════ -->
+    <section class="stats-section">
+        <div class="stats-inner">
+            <div class="stat-item">
+                <div class="stat-value">32</div>
+                <div class="stat-label">Pasos de Workflow</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">100%</div>
+                <div class="stat-label">Trazabilidad Digital</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Módulos Activos</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">V Región</div>
+                <div class="stat-label">Algarrobo · Chile</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         FOOTER
+    ═══════════════════════════════════════════════ -->
+    <footer class="portal-footer">
+        <p>&copy; 2025 <strong>Ilustre Municipalidad de Algarrobo</strong> · Sistema de Gestión Interna · Todos los
+            derechos reservados</p>
+    </footer>
+
+    <!-- ═══════════════════════════════════════════════
+         SCRIPTS
+         layout.js: inyecta el header con el user info
+         portal.js: auth guard + saludo + animaciones
+    ═══════════════════════════════════════════════ -->
+    <script src="../script/router.js"></script>
+    <script src="../script/layout.js"></script>
+    <script src="js/portal.js"></script>
+
+</body>
+
+</html>

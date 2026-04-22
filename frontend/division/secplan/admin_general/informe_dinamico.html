@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <script src="../../../script/router.js"></script>
+    <script src="../../../script/api.js"></script>
+    <script src="../../../script/utils.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Informe Dinámico - Geoportal Municipal</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#6366f1',
+                        secondary: '#ec4899',
+                        accent: '#8b5cf6',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Highcharts core and modules -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.1/highcharts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.1/highcharts-3d.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.1/highcharts-more.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.1/modules/funnel.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.1/modules/treemap.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.1/modules/exporting.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.1/modules/export-data.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.4.1/modules/accessibility.js"></script>
+
+    <!-- Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <link rel="stylesheet" href="styles/admin-styles.css">
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --secondary: #10b981;
+            --bg-body: #f1f5f9;
+            --glass: rgba(255, 255, 255, 0.95);
+            --border: #e2e8f0;
+            --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-body);
+            color: #1e293b;
+            min-height: 100vh;
+        }
+
+        /* Expert Header Design */
+        .page-header {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+            padding: 2.5rem 2rem;
+            color: white;
+            border-radius: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .glass-panel {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-panel:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        /* Filter Ribbon Design - Professional BI Style */
+        .filter-ribbon {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            padding: 0.5rem;
+        }
+
+        .filter-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.875rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .filter-pill:hover {
+            border-color: var(--primary);
+            background: #f8fafc;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .filter-pill.active {
+            background: #eef2ff;
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .filter-pill i {
+            font-size: 1rem;
+            color: #94a3b8;
+            width: 20px;
+            text-align: center;
+        }
+
+        .filter-pill.active i {
+            color: var(--primary);
+        }
+
+        /* Dropdown/Popover */
+        .filter-popover {
+            position: absolute;
+            top: calc(100% + 12px);
+            left: 0;
+            width: 300px;
+            max-height: 400px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 1.25rem;
+            box-shadow: var(--shadow-lg);
+            z-index: 2000;
+            padding: 1rem;
+            display: none;
+            overflow-y: auto;
+        }
+
+        .filter-pill.open .filter-popover {
+            display: block;
+            animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .filter-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .filter-item {
+            display: flex;
+            align-items: center;
+            padding: 0.625rem 0.875rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .filter-item:hover {
+            background: #f1f5f9;
+            border-color: #e2e8f0;
+        }
+
+        .filter-item input {
+            width: 1.125rem;
+            height: 1.125rem;
+            border-radius: 0.375rem;
+            border: 2px solid #cbd5e1;
+            margin-right: 1rem;
+            accent-color: var(--primary);
+            cursor: pointer;
+        }
+
+        .filter-text {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #334155;
+            flex: 1;
+        }
+
+        /* Selects & Buttons */
+        .select-modern {
+            width: 100%;
+            padding: 0.875rem 1.25rem;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #1e293b;
+            transition: all 0.2s;
+            appearance: none;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1.25rem center;
+            background-size: 1rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .select-modern:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .category-label {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.625rem 1.125rem;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 9999px;
+            font-size: 0.813rem;
+            font-weight: 700;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .category-checkbox:checked+.category-label {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-action {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.625rem;
+            padding: 0.875rem 1.75rem;
+            border-radius: 1rem;
+            font-weight: 800;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-generate {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-generate:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.5);
+        }
+
+        /* Sort Icons */
+        th.sortable {
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.2s;
+        }
+
+        th.sortable:hover {
+            background: #f8fafc;
+            color: var(--primary);
+        }
+
+        .sort-icon {
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+            opacity: 0.3;
+        }
+
+        th.sort-active .sort-icon {
+            opacity: 1;
+            color: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="headerRender"></div>
+
+    <div class="flex">
+        <div id="asideRender"></div>
+
+        <main class="flex-1 p-8">
+            <!-- Professional Header -->
+            <div class="page-header animate-fade-in">
+                <div class="flex items-center justify-between relative z-10">
+                    <div>
+                        <h1 class="text-3xl font-extrabold tracking-tight">Análisis Estratégico de Inversión</h1>
+                        <p class="text-indigo-100 mt-2 opacity-90 font-medium">Visualización dinámica de la cartera
+                            municipal de proyectos</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NINE FILTERS RIBBON -->
+            <div class="glass-panel rounded-2xl p-4 mb-2 animate-fade-in relative z-50">
+                <div class="flex items-center justify-between mb-3 px-2">
+                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-400">Panel de Dimensiones
+                        Técnicas</span>
+                    <button onclick="limpiarFiltros()"
+                        class="px-4 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
+                        <i class="fas fa-undo mr-1"></i> Reiniciar Filtros
+                    </button>
+                </div>
+
+                <div class="filter-ribbon">
+                    <!-- Area -->
+                    <div class="filter-pill" onclick="toggleFilterDropdown(this, event)">
+                        <i class="fas fa-layer-group"></i>
+                        <span id="label-area">Área: Todas</span>
+                        <i class="fas fa-chevron-down ml-auto opacity-30 text-[10px]"></i>
+                        <div class="filter-popover custom-scrollbar" id="filter-area" onclick="event.stopPropagation()">
+                        </div>
+                    </div>
+
+                    <!-- Linea -->
+                    <div class="filter-pill" onclick="toggleFilterDropdown(this, event)">
+                        <i class="fas fa-route"></i>
+                        <span id="label-lineamiento">Línea: Todas</span>
+                        <i class="fas fa-chevron-down ml-auto opacity-30 text-[10px]"></i>
+                        <div class="filter-popover custom-scrollbar" id="filter-lineamiento"
+                            onclick="event.stopPropagation()"></div>
+                    </div>
+
+                    <!-- Financiamiento -->
+                    <div class="filter-pill" onclick="toggleFilterDropdown(this, event)">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span id="label-financiamiento">Financ.: Todas</span>
+                        <i class="fas fa-chevron-down ml-auto opacity-30 text-[10px]"></i>
+                        <div class="filter-popover custom-scrollbar" id="filter-financiamiento"
+                            onclick="event.stopPropagation()"></div>
+                    </div>
+
+                    <!-- Año Elab -->
+                    <div class="filter-pill" onclick="toggleFilterDropdown(this, event)">
+                        <i class="fas fa-calendar"></i>
+                        <span id="label-anno_elaboracion">Elab.: Todas</span>
+                        <i class="fas fa-chevron-down ml-auto opacity-30 text-[10px]"></i>
+                        <div class="filter-popover custom-scrollbar" id="filter-anno_elaboracion"
+                            onclick="event.stopPropagation()"></div>
+                    </div>
+
+                    <!-- Año Ejec -->
+                    <div class="filter-pill" onclick="toggleFilterDropdown(this, event)">
+                        <i class="fas fa-calendar-check"></i>
+                        <span id="label-anno_ejecucion">Ejec.: Todas</span>
+                        <i class="fas fa-chevron-down ml-auto opacity-30 text-[10px]"></i>
+                        <div class="filter-popover custom-scrollbar" id="filter-anno_ejecucion"
+                            onclick="event.stopPropagation()"></div>
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="filter-pill" onclick="toggleFilterDropdown(this, event)">
+                        <i class="fas fa-list-check"></i>
+                        <span id="label-estado">Estado: Todas</span>
+                        <i class="fas fa-chevron-down ml-auto opacity-30 text-[10px]"></i>
+                        <div class="filter-popover custom-scrollbar" id="filter-estado"
+                            onclick="event.stopPropagation()"></div>
+                    </div>
+
+                    <!-- Etapa -->
+                    <div class="filter-pill" onclick="toggleFilterDropdown(this, event)">
+                        <i class="fas fa-forward-step"></i>
+                        <span id="label-etapa">Etapa: Todas</span>
+                        <i class="fas fa-chevron-down ml-auto opacity-30 text-[10px]"></i>
+                        <div class="filter-popover custom-scrollbar" id="filter-etapa"
+                            onclick="event.stopPropagation()"></div>
+                    </div>
+
+                    <!-- Postulacion -->
+                    <div class="filter-pill" onclick="toggleFilterDropdown(this, event)">
+                        <i class="fas fa-clipboard-check"></i>
+                        <span id="label-estado_postulacion">Post.: Todas</span>
+                        <i class="fas fa-chevron-down ml-auto opacity-30 text-[10px]"></i>
+                        <div class="filter-popover custom-scrollbar" id="filter-estado_postulacion"
+                            onclick="event.stopPropagation()"></div>
+                    </div>
+
+                    <!-- Profesional -->
+                    <div class="filter-pill" onclick="toggleFilterDropdown(this, event)">
+                        <i class="fas fa-user-tie"></i>
+                        <span id="label-profesional">Prof.: Todas</span>
+                        <i class="fas fa-chevron-down ml-auto opacity-30 text-[10px]"></i>
+                        <div class="filter-popover custom-scrollbar" id="filter-profesional"
+                            onclick="event.stopPropagation()"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Options Panel -->
+            <div class="glass-panel rounded-2xl p-6 mb-8 animate-fade-in border-t-4 border-t-indigo-500">
+                <div class="control-grid">
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-500 mb-2">Dimensión de
+                            Agrupado</label>
+                        <select id="groupByField" onchange="handleGroupByChange()" class="select-modern">
+                            <option value="area_nombre">Área Municipal</option>
+                            <option value="lineamiento_estrategico_nombre" selected>Lineamiento Estratégico</option>
+                            <option value="financiamiento_nombre">Fuente de Financiamiento</option>
+                            <option value="estado_nombre">Estado Administrativo</option>
+                            <option value="etapa_nombre">Etapa del Proyecto</option>
+                            <option value="sector_nombre">Sector Territorial</option>
+                            <option value="anno_elaboracion">Año Elaboración</option>
+                            <option value="profesional_1">Profesional Responsable</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-500 mb-2">Métrica
+                            Cuantitativa</label>
+                        <select id="metricType" onchange="updateChart()" class="select-modern">
+                            <option value="sum_monto">Inversión Comprometida ($)</option>
+                            <option value="count">Volumen de Proyectos (#)</option>
+                            <option value="avg_avance">Avance Físico Promedio (%)</option>
+                            <option value="avg_monto">Inversión Promedio ($)</option>
+                            <option value="sum_ejecutado">Inversión Ejecutada Estimada ($)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black uppercase text-slate-500 mb-2">Visualización</label>
+                        <select id="chartType" onchange="updateChart()" class="select-modern">
+                            <option value="pie_3d">Distribución 3D (Pie)</option>
+                            <option value="donut_3d">Anillo Ejecutivo (Donut)</option>
+                            <option value="column_3d">Comparativa 3D (Columnas)</option>
+                            <option value="treemap">Estructura Jerárquica (TreeMap)</option>
+                            <option value="bar_3d">Ranking Horizontal (Barras)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="border-t border-slate-100 pt-5 mt-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-indigo-900 mb-2">Filtro Rápido de Categorías
+                                Seleccionadas:</label>
+                            <div id="categoryFilters"
+                                class="flex flex-wrap gap-2 max-h-24 overflow-y-auto custom-scrollbar p-1"></div>
+                        </div>
+                        <button onclick="generarInforme()" class="btn-action btn-generate ml-4">
+                            <i class="fas fa-file-invoice"></i> Generar Reporte Completo
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="glass-panel rounded-2xl p-8 animate-fade-in relative overflow-hidden">
+                <div id="chartContainer" class="mb-10"></div>
+
+                <!-- Tabla de Datos -->
+                <div id="dataTable" class="mt-8 border-t border-gray-100 pt-8 hidden">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                            <i class="fas fa-table text-indigo-500"></i>
+                            Detalle Estadístico
+                            <span class="text-sm font-normal text-gray-500 ml-2" id="tableSummaryText"></span>
+                        </h3>
+                        <div class="flex items-center gap-3">
+                            <button onclick="exportTable('csv')"
+                                class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
+                                <i class="fas fa-file-csv text-green-600"></i> CSV
+                            </button>
+                            <button onclick="exportTable('excel')"
+                                class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
+                                <i class="fas fa-file-excel text-green-700"></i> EXCEL
+                            </button>
+                            <button onclick="exportTable('pdf')"
+                                class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
+                                <i class="fas fa-file-pdf text-red-600"></i> PDF
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th class="px-6 py-4 font-bold text-gray-600 uppercase tracking-wider sortable sort-active"
+                                        id="th-category" onclick="sortTable(0)">
+                                        Categoría <i class="fas fa-sort sort-icon"></i></th>
+                                    <th class="px-6 py-4 font-bold text-gray-600 uppercase tracking-wider text-right sortable"
+                                        id="th-value" onclick="sortTable(1)">
+                                        Valor <i class="fas fa-sort sort-icon"></i></th>
+                                    <th class="px-6 py-4 font-bold text-gray-600 uppercase tracking-wider text-right sortable"
+                                        onclick="sortTable(2)">
+                                        % Part. <i class="fas fa-sort sort-icon"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody" class="divide-y divide-gray-100 bg-white">
+                                <!-- Se llena dinámicamente -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="../../../script/layout.js"></script>
+    <script>
+        let allProjects = [];
+        let filteredProjects = [];
+        let catalogData = {};
+        let currentSort = { column: 0, direction: 'asc' };
+
+        const currentFilters = {
+            area: [], lineamiento: [], financiamiento: [], anno_elaboracion: [],
+            anno_ejecucion: [], estado: [], etapa: [], estado_postulacion: [], profesional: []
+        };
+
+        const filterFieldMap = {
+            'area': 'area_nombre', 'lineamiento': 'lineamiento_estrategico_nombre',
+            'financiamiento': 'financiamiento_nombre', 'anno_elaboracion': 'anno_elaboracion',
+            'anno_ejecucion': 'anno_ejecucion', 'estado': 'estado_nombre', 'etapa': 'etapa_nombre',
+            'estado_postulacion': 'estado_postulacion_nombre', 'profesional': 'profesional_1'
+        };
+
+        const filterLabels = {
+            area: 'Área', lineamiento: 'Línea', financiamiento: 'Financ.',
+            anno_elaboracion: 'Elab.', anno_ejecucion: 'Ejec.', estado: 'Estado',
+            etapa: 'Etapa', estado_postulacion: 'Post.', profesional: 'Prof.'
+        };
+
+        async function init() {
+            try {
+                // Cargar primero los catálogos para tener todas las opciones posibles (Fix Lineamientos)
+                await loadCatalogData();
+                await fetchProjects();
+            } catch (err) {
+                console.error("Error initializer:", err);
+            }
+        }
+
+        async function loadCatalogData() {
+            try {
+                const resources = [
+                    'areas', 'financiamientos', 'estados_proyecto',
+                    'etapas_proyecto', 'estados_postulacion', 'sectores',
+                    'lineamientos_estrategicos'
+                ];
+                const results = await Promise.all(
+                    resources.map(res => api.get(`/${res}`).catch(() => []))
+                );
+                resources.forEach((res, index) => catalogData[res] = results[index]);
+                console.log("Catálogos cargados:", Object.keys(catalogData));
+            } catch (error) {
+                console.error('Error catálogos:', error);
+            }
+        }
+
+        async function fetchProjects() {
+            try {
+                allProjects = await api.get('/proyectos');
+                filteredProjects = [...allProjects];
+                applyFilters();
+            } catch (error) {
+                console.error('Error proyectos:', error);
+                alert('No se pudieron cargar los proyectos de la base de datos.');
+            }
+        }
+
+        function populateFilters() {
+            for (const [filterKey, dataKey] of Object.entries(filterFieldMap)) {
+                const container = document.getElementById(`filter-${filterKey}`);
+                if (!container) continue;
+
+                const pill = container.parentElement;
+                const labelElement = document.getElementById(`label-${filterKey}`);
+                const currentVals = currentFilters[filterKey];
+
+                if (currentVals.length === 0) {
+                    labelElement.textContent = `${filterLabels[filterKey]}: Todas`;
+                    pill.classList.remove('active');
+                } else {
+                    const str = currentVals.length === 1 ? currentVals[0] : `${currentVals.length} sel.`;
+                    labelElement.innerHTML = `${filterLabels[filterKey]}: <span class="text-indigo-700">${str}</span>`;
+                    pill.classList.add('active');
+                }
+
+                // Obtener opciones del catálogo si existe, sino de los proyectos
+                let options = [];
+                if (filterKey === 'area') options = catalogData.areas?.map(a => a.nombre) || [];
+                else if (filterKey === 'lineamiento') options = catalogData.lineamientos_estrategicos?.map(l => l.nombre) || [];
+                else if (filterKey === 'financiamiento') options = catalogData.financiamientos?.map(f => f.nombre) || [];
+                else if (filterKey === 'estado') options = catalogData.estados_proyecto?.map(e => e.nombre) || [];
+                else if (filterKey === 'etapa') options = catalogData.etapas_proyecto?.map(e => e.nombre) || [];
+                else if (filterKey === 'estado_postulacion') options = catalogData.estados_postulacion?.map(e => e.nombre) || [];
+                else {
+                    options = [...new Set(allProjects.map(p => String(p[dataKey] || '').trim()).filter(v => v))];
+                }
+
+                options = [...new Set(options)].sort();
+
+                let html = `
+                    <div class="filter-list">
+                        <label class="filter-item border-b border-slate-100 mb-1">
+                            <input type="checkbox" value="all" onchange="handleFilterChange('${filterKey}', this)" ${currentVals.length === 0 ? 'checked' : ''}>
+                            <span class="filter-text font-bold text-indigo-600">-- VER TODAS --</span>
+                        </label>
+                `;
+
+                options.forEach(opt => {
+                    const isSelected = currentVals.includes(String(opt));
+                    html += `
+                        <label class="filter-item">
+                            <input type="checkbox" value="${opt}" onchange="handleFilterChange('${filterKey}', this)" ${isSelected ? 'checked' : ''}>
+                            <span class="filter-text">${opt}</span>
+                        </label>
+                    `;
+                });
+
+                html += '</div>';
+                container.innerHTML = html;
+            }
+        }
+
+        function handleFilterChange(type, el) {
+            if (el.value === 'all') {
+                if (el.checked) currentFilters[type] = [];
+            } else {
+                const val = String(el.value);
+                const idx = currentFilters[type].indexOf(val);
+                if (el.checked) {
+                    if (idx === -1) currentFilters[type].push(val);
+                } else {
+                    if (idx !== -1) currentFilters[type].splice(idx, 1);
+                }
+            }
+            applyFilters();
+        }
+
+        function applyFilters() {
+            filteredProjects = allProjects.filter(p => {
+                return Object.entries(currentFilters).every(([fK, fV]) => {
+                    if (fV.length === 0) return true;
+                    const pVal = String(p[filterFieldMap[fK]] || '').trim();
+                    return fV.includes(pVal);
+                });
+            });
+            populateFilters();
+            handleGroupByChange();
+        }
+
+        function toggleFilterDropdown(el, ev) {
+            ev.stopPropagation();
+            const isOpen = el.classList.contains('open');
+            document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('open'));
+            if (!isOpen) el.classList.add('open');
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.filter-pill')) {
+                document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('open'));
+            }
+        });
+
+        function limpiarFiltros() {
+            Object.keys(currentFilters).forEach(k => currentFilters[k] = []);
+            applyFilters();
+        }
+
+        window.onload = init;
+
+
+        function handleGroupByChange() {
+            if (!allProjects || allProjects.length === 0) return;
+            const groupBy = document.getElementById('groupByField').value;
+
+            // Obtenemos categorías basadas en el dataset COMPLETO para permitir navegación estable
+            const categories = [...new Set(allProjects.map(p => p[groupBy] || 'Sin especificar'))].sort();
+
+            const container = document.getElementById('categoryFilters');
+            container.innerHTML = '';
+
+            categories.forEach((cat, index) => {
+                // Solo mostramos chips que tengan datos bajo el filtrado del RIBBON actual
+                // pero si ya estaban seleccionados, los mantenemos para poder "limpiar"
+                const hasData = filteredProjects.some(p => (p[groupBy] || 'Sin especificar') === cat);
+                if (!hasData) return;
+
+                const id = `cat-${index}`;
+                container.innerHTML += `
+                    <div class="relative">
+                        <input type="checkbox" id="${id}" value="${cat}" class="category-checkbox" checked onchange="updateChartAndPills()">
+                        <label for="${id}" class="category-label">${cat}</label>
+                    </div>
+                `;
+            });
+
+            updateChart();
+        }
+
+        function updateChartAndPills() {
+            updateChart();
+            populateFilters(); // Sincronización inversa: chips -> ribbon
+        }
+
+        function updateChart() {
+            if (!filteredProjects || filteredProjects.length === 0) {
+                if (window.Highcharts) Highcharts.chart('chartContainer', { title: { text: 'No hay proyectos que coincidan con los filtros' } });
+                document.getElementById('dataTable').classList.add('hidden');
+                return;
+            }
+
+            const groupBy = document.getElementById('groupByField').value;
+            const metric = document.getElementById('metricType').value;
+            const chartType = document.getElementById('chartType').value;
+
+            // Obtener categorías seleccionadas
+            const selectedCategories = Array.from(document.querySelectorAll('.category-checkbox:checked')).map(cb => cb.value);
+
+            if (selectedCategories.length === 0) {
+                Highcharts.chart('chartContainer', { title: { text: 'Seleccione al menos una categoría' } });
+                return;
+            }
+
+            const fieldLabel = document.getElementById('groupByField').options[document.getElementById('groupByField').selectedIndex].text;
+            const metricLabel = document.getElementById('metricType').options[document.getElementById('metricType').selectedIndex].text;
+
+            const currentYear = new Date().getFullYear();
+            const groupedRaw = {};
+
+            // Filtrar proyectos por categorías seleccionadas
+            const baseData = filteredProjects.filter(p => selectedCategories.includes(p[groupBy] || 'Sin especificar'));
+
+            baseData.forEach(p => {
+                let key = p[groupBy] || 'Sin especificar';
+                if (!groupedRaw[key]) {
+                    groupedRaw[key] = {
+                        count: 0,
+                        sum_monto: 0,
+                        sum_avance: 0,
+                        sum_ejecutado: 0,
+                        sum_antiguedad: 0,
+                        sum_profesionales: 0
+                    };
+                }
+
+                const monto = parseFloat(p.monto) || 0;
+                const avance = parseFloat(p.avance_total_porcentaje) || 0;
+                const elabYear = parseInt(p.anno_elaboracion) || currentYear;
+
+                // Contar profesionales no vacíos
+                const profCount = [p.profesional_1, p.profesional_2, p.profesional_3].filter(pf => pf && pf.trim()).length;
+
+                groupedRaw[key].count++;
+                groupedRaw[key].sum_monto += monto;
+                groupedRaw[key].sum_avance += avance;
+                groupedRaw[key].sum_ejecutado += (monto * (avance / 100));
+                groupedRaw[key].sum_antiguedad += (currentYear - elabYear);
+                groupedRaw[key].sum_profesionales += profCount;
+            });
+
+            const processedData = Object.keys(groupedRaw).map(key => {
+                const item = groupedRaw[key];
+                let value = 0;
+
+                switch (metric) {
+                    case 'sum_monto': value = item.sum_monto; break;
+                    case 'count': value = item.count; break;
+                    case 'avg_monto': value = item.sum_monto / item.count; break;
+                    case 'avg_avance': value = item.sum_avance / item.count; break;
+                    case 'sum_ejecutado': value = item.sum_ejecutado; break;
+                    case 'avg_antiguedad': value = item.sum_antiguedad / item.count; break;
+                    case 'avg_profesionales': value = item.sum_profesionales / item.count; break;
+                }
+
+                return { name: key, y: value };
+            }).sort((a, b) => b.y - a.y);
+
+            const totalGlobal = processedData.reduce((acc, curr) => acc + curr.y, 0);
+
+            // Inyectar el porcentaje relativo para el tooltip
+            processedData.forEach(d => {
+                d.percentage = (d.y / (totalGlobal || 1)) * 100;
+            });
+
+            renderChart(processedData, `${metricLabel} por ${fieldLabel}`, totalGlobal, chartType, metric);
+            renderTable(processedData, fieldLabel, metricLabel, totalGlobal, metric);
+        }
+
+        function renderTable(data, categoryLabel, metricLabel, total, metric) {
+            const tableDiv = document.getElementById('dataTable');
+            const tbody = document.getElementById('tableBody');
+            const thCategory = document.getElementById('th-category');
+            const thValue = document.getElementById('th-value');
+            const summaryText = document.getElementById('tableSummaryText');
+
+            tableDiv.classList.remove('hidden');
+            thCategory.innerHTML = `${categoryLabel.toUpperCase()} <i class="fas fa-sort sort-icon"></i>`;
+            thValue.innerHTML = `${metricLabel.toUpperCase()} <i class="fas fa-sort sort-icon"></i>`;
+            if (summaryText) {
+                summaryText.textContent = `Total de ${data.length} categorías analizadas`;
+            }
+
+            const isCurrency = metric.includes('monto') || metric.includes('ejecutado');
+            const isPercent = metric.includes('avance');
+            const isAntiguedad = metric.includes('antiguedad');
+            const isCount = metric === 'count' || metric.includes('profesionales');
+
+            const valueSuffix = isPercent ? '%' : (isAntiguedad ? ' años' : (isCount ? ' proy.' : ''));
+            const valuePrefix = isCurrency ? '$' : '';
+
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-indigo-50/30 transition-colors';
+
+                const formattedValue = isCurrency ? formatCurrency(item.y) : `${item.y.toLocaleString('es-CL', { maximumFractionDigits: 1 })}${valueSuffix}`;
+                const progressBarColor = item.percentage > 50 ? 'bg-indigo-500' : (item.percentage > 20 ? 'bg-indigo-400' : 'bg-indigo-300');
+
+                row.innerHTML = `
+                    <td class="px-6 py-4 font-medium text-gray-900">${item.name}</td>
+                    <td class="px-6 py-4 text-right font-mono font-bold text-indigo-700">${formattedValue}</td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="${progressBarColor} h-full rounded-full" style="width: ${item.percentage}%"></div>
+                            </div>
+                            <span class="text-xs font-bold text-gray-600 min-w-[40px] text-right">${item.percentage.toFixed(1)}%</span>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Aplicar orden inicial o persistente
+            sortTable(currentSort.column, true);
+        }
+
+        function sortTable(columnIndex, isInitial = false) {
+            const table = document.querySelector('table');
+            const tbody = document.getElementById('tableBody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const ths = table.querySelectorAll('th');
+
+            if (!isInitial) {
+                if (currentSort.column === columnIndex) {
+                    currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    currentSort.column = columnIndex;
+                    currentSort.direction = 'asc';
+                }
+            }
+
+            ths.forEach((th, idx) => {
+                th.classList.remove('sort-active');
+                const icon = th.querySelector('.sort-icon');
+                if (icon) icon.className = 'fas fa-sort sort-icon';
+
+                if (idx === currentSort.column) {
+                    th.classList.add('sort-active');
+                    if (icon) {
+                        icon.className = currentSort.direction === 'asc' ? 'fas fa-sort-up sort-icon' : 'fas fa-sort-down sort-icon';
+                    }
+                }
+            });
+
+            const sortedRows = rows.sort((a, b) => {
+                let cellA = a.cells[columnIndex].textContent.trim();
+                let cellB = b.cells[columnIndex].textContent.trim();
+
+                const cleanValue = (val) => {
+                    if (val.includes('%')) return parseFloat(val.split('%')[0].replace(/\$|\./g, '').replace(',', '.'));
+                    if (val.includes('$')) return parseFloat(val.replace(/\$|\./g, '').replace(',', '.'));
+                    const num = parseFloat(val.replace(/\./g, '').replace(',', '.'));
+                    return isNaN(num) ? val.toLowerCase() : num;
+                };
+
+                const valA = cleanValue(cellA);
+                const valB = cleanValue(cellB);
+
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                    return currentSort.direction === 'asc' ? valA - valB : valB - valA;
+                }
+
+                return currentSort.direction === 'asc'
+                    ? String(valA).localeCompare(String(valB))
+                    : String(valB).localeCompare(String(valA));
+            });
+
+            tbody.innerHTML = '';
+            sortedRows.forEach(row => tbody.appendChild(row));
+        }
+
+        function exportTable(format) {
+            const groupBy = document.getElementById('groupByField').options[document.getElementById('groupByField').selectedIndex].text;
+            const metric = document.getElementById('metricType').options[document.getElementById('metricType').selectedIndex].text;
+            const fileName = `Informe_Dinamico_${groupBy.replace(/ /g, '_')}`;
+
+            const rows = [];
+            const headers = [groupBy, metric, 'Participación (%)'];
+
+            document.querySelectorAll('#tableBody tr').forEach(tr => {
+                const cells = Array.from(tr.querySelectorAll('td')).map((td, i) => {
+                    if (i === 2) return td.querySelector('span').textContent.replace('%', '');
+                    return td.textContent.trim();
+                });
+                rows.push(cells);
+            });
+
+            if (format === 'csv') {
+                let csvContent = headers.join(',') + '\n' + rows.map(r => r.join(',')).join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `${fileName}.csv`;
+                link.click();
+            } else if (format === 'excel') {
+                const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Datos");
+                XLSX.writeFile(workbook, `${fileName}.xlsx`);
+            } else if (format === 'pdf') {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                doc.setFontSize(18);
+                doc.text('Informe Dinámico - Geoportal Municipal', 14, 22);
+                doc.setFontSize(11);
+                doc.setTextColor(100);
+                doc.text(`Análisis de ${metric} por ${groupBy}`, 14, 30);
+                doc.autoTable({
+                    head: [headers],
+                    body: rows,
+                    startY: 35,
+                    theme: 'striped',
+                    headStyles: { fillColor: [99, 102, 241] }
+                });
+                doc.save(`${fileName}.pdf`);
+            }
+        }
+
+        function renderChart(data, title, total, type, metric) {
+            const isCurrency = metric.includes('monto') || metric.includes('ejecutado');
+            const isPercent = metric.includes('avance');
+            const isAntiguedad = metric.includes('antiguedad');
+            const isCount = metric === 'count' || metric.includes('profesionales');
+
+            const valueSuffix = isPercent ? '%' : (isAntiguedad ? ' años' : (isCount ? ' proy.' : ''));
+            const valuePrefix = isCurrency ? '$' : '';
+
+            const commonConfig = {
+                chart: {
+                    backgroundColor: 'transparent',
+                    style: { fontFamily: 'Outfit' }
+                },
+                title: {
+                    text: title,
+                    style: { fontSize: '20px', fontWeight: 'bold' }
+                },
+                subtitle: {
+                    text: isCurrency ? `Valor Acumulado: ${formatCurrency(total)}` : `Métrica Global: ${total.toFixed(1)}${valueSuffix}`,
+                    style: { fontSize: '16px' }
+                },
+                tooltip: {
+                    pointFormat: `{series.name}: <b>{point.percentage:.1f}%</b><br>Valor: <b>${valuePrefix}{point.y:,.1f}${valueSuffix}</b>`
+                }
+            };
+
+            let specificConfig = {};
+
+            switch (type) {
+                case 'pie_3d':
+                    specificConfig = {
+                        chart: { type: 'pie', options3d: { enabled: true, alpha: 45, beta: 0 } },
+                        plotOptions: { pie: { depth: 35, dataLabels: { enabled: true, format: '{point.name}: {point.percentage:.1f}%' } } },
+                        series: [{ name: 'Inversión', data: data }]
+                    };
+                    break;
+                case 'donut_3d':
+                    specificConfig = {
+                        chart: { type: 'pie', options3d: { enabled: true, alpha: 45, beta: 0 } },
+                        plotOptions: { pie: { innerSize: '60%', depth: 35, dataLabels: { enabled: true, format: '{point.name}: {point.percentage:.1f}%' } } },
+                        series: [{ name: 'Inversión', data: data }]
+                    };
+                    break;
+                case 'column_3d':
+                    specificConfig = {
+                        chart: { type: 'column', options3d: { enabled: true, alpha: 15, beta: 15, depth: 50, viewDistance: 25 } },
+                        xAxis: { categories: data.map(d => d.name) },
+                        series: [{ name: 'Inversión', data: data.map(d => d.y), colorByPoint: true }]
+                    };
+                    break;
+                case 'bar_3d':
+                    specificConfig = {
+                        chart: { type: 'bar', options3d: { enabled: true, alpha: 10, beta: 10, depth: 50 } },
+                        xAxis: { categories: data.map(d => d.name) },
+                        series: [{ name: 'Inversión', data: data.map(d => d.y), colorByPoint: true }]
+                    };
+                    break;
+                case 'line':
+                    specificConfig = {
+                        chart: { type: 'line' },
+                        xAxis: { categories: data.map(d => d.name) },
+                        series: [{ name: 'Inversión', data: data.map(d => d.y) }]
+                    };
+                    break;
+                case 'area':
+                    specificConfig = {
+                        chart: { type: 'area' },
+                        xAxis: { categories: data.map(d => d.name) },
+                        series: [{ name: 'Inversión', data: data.map(d => d.y) }]
+                    };
+                    break;
+                case 'funnel':
+                    specificConfig = {
+                        chart: { type: 'funnel' },
+                        plotOptions: { funnel: { neckWidth: '30%', neckHeight: '25%', width: '70%', dataLabels: { enabled: true, format: '<b>{point.name}</b>: {point.percentage:.1f}%' } } },
+                        series: [{ name: 'Inversión', data: data.map(d => [d.name, d.y]) }]
+                    };
+                    break;
+                case 'pyramid':
+                    specificConfig = {
+                        chart: { type: 'pyramid' },
+                        plotOptions: { pyramid: { dataLabels: { enabled: true, format: '{point.name}' } } },
+                        series: [{ name: 'Inversión', data: data.map(d => [d.name, d.y]) }]
+                    };
+                    break;
+                case 'treemap':
+                    specificConfig = {
+                        chart: { type: 'treemap' },
+                        series: [{ layoutAlgorithm: 'squarified', data: data.map(d => ({ name: d.name, value: d.y, colorValue: d.y })) }]
+                    };
+                    break;
+                case 'radial':
+                    specificConfig = {
+                        chart: { polar: true, type: 'line' },
+                        xAxis: { categories: data.map(d => d.name), tickmarkPlacement: 'on', lineWidth: 0 },
+                        yAxis: { gridLineInterpolation: 'polygon', lineWidth: 0, min: 0 },
+                        series: [{ name: 'Inversión', data: data.map(d => d.y), pointPlacement: 'on' }]
+                    };
+                    break;
+            }
+
+            const finalConfig = Highcharts.merge(commonConfig, specificConfig);
+            Highcharts.chart('chartContainer', finalConfig);
+        }
+
+        function generarInforme() {
+            if (!allProjects || allProjects.length === 0) {
+                alert('No hay datos cargados para generar el informe.');
+                return;
+            }
+
+            const groupBy = document.getElementById('groupByField').value;
+            const fieldLabel = document.getElementById('groupByField').options[document.getElementById('groupByField').selectedIndex].text;
+            const groupedData = {};
+
+            allProjects.forEach(p => {
+                let value = p[groupBy] || 'Sin especificar';
+                let monto = parseFloat(p.monto) || 0;
+                if (!groupedData[value]) groupedData[value] = { count: 0, total: 0 };
+                groupedData[value].count++;
+                groupedData[value].total += monto;
+            });
+
+            console.table(groupedData);
+            alert(`Informe generado para "${fieldLabel}" con ${Object.keys(groupedData).length} categorías analizadas. Los detalles se han exportado a la consola de desarrollador.`);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // checkLoginStatus viene de router.js o utils.js
+            if (typeof checkLoginStatus === 'function') {
+                checkLoginStatus();
+            }
+            fetchProjects();
+        });
+    </script>
+
+    <script src="../../../script/help.js"></script>
+    <script>setTimeout(() => { if (typeof createHelpButton === 'function') createHelpButton('informe_dinamico'); }, 500);</script>
+</body>
+
+</html>

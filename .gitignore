@@ -1,0 +1,65 @@
+# ─── Python ────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.whl
+
+# ─── Entorno virtual ───────────────────────────────────────────
+venv/
+.venv/
+env/
+# ─── Variables de entorno y secretos ──────────────────────────
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+config_correo.json
+
+# ─── Logs ─────────────────────────────────────────────────────
+*.log
+logs/
+municipal_api.log
+
+
+
+
+
+
+# ─── Herramientas de desarrollo ───────────────────────────────
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.tox/
+
+# ─── IDEs ─────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ─── Sistema operativo ────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Node (tailwind, scripts frontend) ───────────────────────
+node_modules/
+npm-debug.log*
+
+# ─── Archivos temporales / de trabajo ─────────────────────────
+*.tmp
+*.bak
+*_respaldo.*
+*_backup.*
+.claude/settings.local.json
