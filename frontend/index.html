@@ -281,7 +281,7 @@
       </div>
     </div>
 
-    <script src="/frontend/script/api.js"></script>
+    <script src="/script/api.js"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
         // Rescatar usuario recordado antes de limpiar la caché
@@ -342,7 +342,7 @@
           clearAlerts();
 
           const apiBase = window.API_BASE_URL;
-          fetch(`${apiBase}/login`, {
+          fetch(`${apiBase}/api/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: username, password: password }),
