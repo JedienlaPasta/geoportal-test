@@ -8,8 +8,8 @@ services:
     container_name: geoportal_backend
     restart: always
     # Usamos stack.env para que Portainer inyecte las variables de la UI
-    env_file:
-      - stack.env
+    # env_file:
+    #   - stack.env
     volumes:
       - geoportal_data:/data
     networks:
