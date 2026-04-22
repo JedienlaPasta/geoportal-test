@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend.Dockerfile
+    container_name: geoportal_backend
+    restart: always
+    # Usamos stack.env para que Portainer inyecte las variables de la UI
+    env_file:
+      - stack.env
+    volumes:
+      - geoportal_data:/data
+    networks:
+      - geoportal_net
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend.Dockerfile
+    container_name: geoportal_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "8080:80"
+    networks:
+      - geoportal_net
+
+networks:
+  geoportal_net:
+    driver: bridge
+
+volumes:
+  geoportal_data:
