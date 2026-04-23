@@ -45,19 +45,19 @@ const api = {
     try {
       const response = await fetch(url, config);
 
-      // if (response.status === 401) {
-      //   console.warn("Sesión expirada o inválida");
-      //   if (typeof logout === "function") {
-      //     logout();
-      //   } else {
-      //     localStorage.clear();
-      //     const _base = window.location.hostname.endsWith("github.io")
-      //       ? "/ALGARROBO_BASE2"
-      //       : "";
-      //     window.location.href = _base + "/frontend/index.html";
-      //   }
-      //   return;
-      // }
+      if (response.status === 401) {
+        console.warn("Sesión expirada o inválida");
+        if (typeof logout === "function") {
+          logout();
+        } else {
+          localStorage.clear();
+          const _base = window.location.hostname.endsWith("github.io")
+            ? "/ALGARROBO_BASE2"
+            : "";
+          window.location.href = _base + "/frontend/index.html";
+        }
+        return;
+      }
 
       if (!response.ok) {
         const errorText = await response.text().catch(() => "");
