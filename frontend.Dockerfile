@@ -1,9 +1,10 @@
+# Imagen base
 FROM nginx:alpine
 
-# Copiamos la configuración del proxy
+# Configuración del proxy
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copiamos solo el contenido de la carpeta frontend [cite: 243]
+# Contenido de la carpeta frontend
 COPY frontend/ /usr/share/nginx/html
 
 EXPOSE 80

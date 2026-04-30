@@ -77,7 +77,7 @@ function checkLoginStatus() {
   }
 
   // Role verification (Control de Acceso)
-  const validRoles = [10, 11, 16]; // admin_general (10), admin_proyectos (11)
+  const validRoles = [10, 11]; // admin_general (10), admin_proyectos (11)
   let userRole = null;
 
   if (userData.roles && userData.roles.length > 0) {
